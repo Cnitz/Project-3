@@ -7,8 +7,7 @@
 //
 #include "defs_itf.h"
 
-int find_conditional();
-void print_data();
+int find_conditionals();
 Column* get_column();
 Table* build_string_left_table();
 Table* build_string_right_table();
@@ -38,31 +37,33 @@ void dt_build(Table *tbl, Tree *tree){
     char* split_s;
     char type;
     
-  //  tbl_print(tbl);
+   //tbl_print(tbl);
   //  printf("%d", cols);
     for(int i = 0; i < cols-1; i++){
         
         if(tbl_row_type_at(tbl_row_at(tbl, 0), i) == 'S'){
-            if(has_single_value(get_column(tbl, i))) continue;
+            //if(has_single_value(get_column(tbl, i))) continue;
             entropy = find_string_split_entropy(get_column(tbl, i));
         }
         
         if(tbl_row_type_at(tbl_row_at(tbl, 0), i) == 'D'){
-            if(has_single_value(get_column(tbl, i))) continue;
+           // if(has_single_value(get_column(tbl, i))) continue;
             entropy = find_double_split_entropy(get_column(tbl, i));
         }
-       printf("%.2f\n", entropy);
+        
         if(i == 0){
             prev = entropy;
             index = i;
+                   
             if(tbl_row_type_at(tbl_row_at(tbl, 0), index) == 'D'){
-                split_d = find_double_split_value(get_column(tbl, index));
-                type = 'D';
+                       split_d = find_double_split_value(get_column(tbl, index));
+                       type = 'D';
             }
             
             if(tbl_row_type_at(tbl_row_at(tbl, 0), index) == 'S'){
                 split_s = find_string_split_value(get_column(tbl, index));
                 type = 'S';
+                
              //  printf("%s\n\n", split_s);
             }
         }
@@ -80,12 +81,13 @@ void dt_build(Table *tbl, Tree *tree){
             if(tbl_row_type_at(tbl_row_at(tbl, 0), index) == 'S'){
                 split_s = find_string_split_value(get_column(tbl, index));
                 type = 'S';
+                
                // printf("%s\n", split_s);
             }
         }
         
     }
-    printf("\n");
+    
     if(is_impossible_split(get_column(tbl, 0)) == 1){
         n->leaf = 1;
         n->class = (unsigned int)tbl_double_at(tbl_row_at(tbl, 0), cols-1);
@@ -94,6 +96,7 @@ void dt_build(Table *tbl, Tree *tree){
     }
     
     if(type == 'S'){
+        
         n->entropy = prev;
         n->field.s = split_s;
         n->type = type;
@@ -102,15 +105,15 @@ void dt_build(Table *tbl, Tree *tree){
         tree->data = n;
        
         //build two seperate tables
-        //left = build_string_left_table(tbl, split_s, index);
-        //right = build_string_right_table(tbl, split_s, index);
+        left = build_string_left_table(tbl, split_s, index);
+        right = build_string_right_table(tbl, split_s, index);
        
         //recursion
         tree->left = t_make();
         tree->right = t_make();
-        dt_build(build_string_left_table(tbl, split_s, index), tree->left);
         
-        dt_build(build_string_right_table(tbl, split_s, index), tree->right);
+        dt_build(left, tree->left);
+        dt_build(right, tree->right);
         return;
     }
     
@@ -154,47 +157,25 @@ void dt_free(void *data);
 
 void dt_print(void *data){
     if(data == NULL) return;
-    int space = 0;
-    
-   // t_print((Tree*)data, space, f);
+    Node* n = (Node*)data;
+    if(n->leaf == 1){
+        printf("C:%d", n->class);
+    }
+    if(n->type == 'S'){
+        printf("%s", colnames[n->column]);
+        printf("=");
+        printf("%s\n", n->field.s);
+        
+    }
+    if(n->type == 'D'){
+        printf("%s", colnames[n->column]);
+        printf("=");
+        printf("%.2f\n", n->field.d);
+    }
+
 }
 
 extern char **colnames;
-
-/*
-//TODO: edit to print C:0 for leaf nodes
-void print_data(void* v){
-    if(v == NULL) return;
-    int* err = calloc(1, sizeof(int));
-    int n = find_conditional((char*)v);
-    *err =1;
-    //if(((char*)v)[n] > '0' && ((char*)v)[n] < '9')
-    if(n>0)
-        rd_parse_number(v, n, strlen(v), err);
-    if(*err == 0){
-        char* p = calloc(n+1, sizeof(char));
-        strncpy(p, v, n);
-        p[n] = '\0';
-        printf("%s", p);
-        printf("%.2f\n", rd_parse_number(v, n, strlen(v), err));
-        free(p);
-    }
-    else if (*err == 1){
-        printf("%s\n", (char *)v);
-    }
-    free(err);
-}
-
-int find_conditional(char* text){
-    for(int i = 0; i < strlen(text); i++){
-        if(text[i] == '=') return i+1;
-        if(text[i] == '<' && text[i+1] != '=') return i+1;
-        if(text[i] == '>' && text[i+1] != '=') return i+1;
-    }
-    return -1;
-    
-}
-*/
 
 Column* get_column(Table* tbl, int index){
     int rows = tbl_row_count(tbl);

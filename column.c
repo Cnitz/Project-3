@@ -217,14 +217,19 @@ char *find_string_split_value(Column *column){
         
         
         entropy = left + right;
+        //printf("%.2f//%s\n", entropy, column->fields.f[i]);
         if(i == 0){
             prev = entropy;
             ret = column->fields.f[i];
         }
+        if(fabs(prev-entropy) <ERROR){
+            if(strcmp(column->fields.f[i], ret) > 0)
+                ret = column->fields.f[i];
+        }
       
         if(prev < entropy){
             ret = column->fields.f[i];
-        prev = entropy;
+            prev = entropy;
         }
     }
     
@@ -393,14 +398,19 @@ double calc_right_str(Column* c, char* value){
         }
     }
     for(int i = 0; i <= m; i++){
-        if((ni = count_classes_right_str(c, i, value)) > 0)
+        
+        if((ni = (double)count_classes_right_str(c, i, value)) > 0){
+            //printf("%d\n", count);
             pi = ni/(double)count;
+        }
         else
             pi = 0;
         if(fabs(pi) > ERROR)
         sum += (pi*log2(pi));
+       //  printf("%f\n",sum);
         
     }
+    
     return sum*count;
 }
 //****** counts columns class in right and left DOUBLE columns *****

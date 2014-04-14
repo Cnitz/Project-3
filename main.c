@@ -12,8 +12,22 @@ Table* build_string_left_table();
 Table* build_string_right_table();
 Table* build_double_left_table();
 Table* build_double_right_table();
+char** colnames;
+void(*p)(void*) = dt_print;
 
 int main(int argc, char* argv[]){
+    colnames = calloc(5, sizeof(char*));
+    char* c1 = "outlook";
+    char* c2 = "temperature";
+    char* c3 = "humidity";
+    char* c4 = "wind";
+    char* c5 = "play";
+    colnames[0] = c1;
+    colnames[1] = c2;
+    colnames[2] = c3;
+    colnames[3] = c4;
+    colnames[4] = c5;
+    
     char* p1 = "rainy";
     char* p2 = "overcast";
     char* p3 = "sunny";
@@ -106,17 +120,22 @@ int main(int argc, char* argv[]){
 
 
 
-
+    
 
 
     Tree* t = t_make();
     
     dt_build(tbl, t);
-      printf("%s\n", ((Node*)t->data)->field.s);
-      printf("%s\n", ((Node*)t->left->data)->field.s);
-      printf("%s\n", ((Node*)t->right->data)->field.s);
-      printf("%s\n", ((Node*)t->right->left->data)->field.s);
-      printf("%s\n", ((Node*)t->right->right->data)->field.s);
+    int space = 0;
+    t_print(t, space, p);
+    
+    
+    
+    /*  printf("%s\n", ((Node*)t->data)->field.s);
+      printf(" %s\n", ((Node*)t->left->data)->field.s);
+      printf(" %s\n", ((Node*)t->right->data)->field.s);
+      printf("  %s\n", ((Node*)t->right->right->data)->field.s);
+      printf("  %s\n", ((Node*)t->right->right->left->data)->field.s);*/
 }
 
 
