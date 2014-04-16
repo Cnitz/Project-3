@@ -43,6 +43,7 @@ int main(int argc, char *argv[]){
     dt_build(tbl, t);
     int space = 0;
     t_print(t, space, dt_print);
+   // printf("%s\n",rd_parse_string("hello/hello",0, 12));
     
     
     //char* p = "SSDSDS";

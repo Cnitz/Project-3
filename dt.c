@@ -22,12 +22,13 @@ void dt_build(Table *tbl, Tree *tree){
     Node* n = n_make();
     int count = 0;
     int cols = tbl_column_count(tbl), index = 0;
+   
     if(tbl_row_count(tbl) <= 1){
         n->leaf = 1;
-        
-        tbl_row_at(tbl, 0);
         n->class = (unsigned int)tbl_double_at(tbl_row_at(tbl, 0), cols-1);
         tree->data = n;
+        tree->left = NULL;
+        tree->right = NULL;
         return;
     }
     
@@ -42,21 +43,22 @@ void dt_build(Table *tbl, Tree *tree){
   //  printf("%d", cols);
     for(int i = 0; i < cols-1; i++){
         
+        Column* c = get_column(tbl, i);
         if(tbl_row_type_at(tbl_row_at(tbl, 0), i) == 'S'){
-            if(has_single_value(get_column(tbl, i))) {
+            if(has_single_value(c)) {
                 count++;
                 continue;
             }
-            entropy = find_string_split_entropy(get_column(tbl, i));
+            entropy = find_string_split_entropy(c);
            // printf("%.2f\n", entropy);
         }
         
         if(tbl_row_type_at(tbl_row_at(tbl, 0), i) == 'D'){
-            if(has_single_value(get_column(tbl, i))) {
+            if(has_single_value(c)) {
                 count++;
                 continue;
             }
-            entropy = find_double_split_entropy(get_column(tbl, i));
+            entropy = find_double_split_entropy(c);
         }
         
      /*   if(i == 0){
@@ -93,7 +95,7 @@ void dt_build(Table *tbl, Tree *tree){
                // printf("%s\n", split_s);
             }
         }
-        
+        free_column(c);
     }
    
 
@@ -101,6 +103,8 @@ void dt_build(Table *tbl, Tree *tree){
         n->leaf = 1;
         n->class = (unsigned int)tbl_double_at(tbl_row_at(tbl, 0), cols-1);
         tree->data = n;
+        tree->left = NULL;
+        tree->right = NULL;
         return;
     }
     
@@ -108,6 +112,8 @@ void dt_build(Table *tbl, Tree *tree){
         n->leaf = 1;
         n->class = (unsigned int)tbl_double_at(tbl_row_at(tbl, 0), cols-1);
         tree->data = n;
+        tree->left = NULL;
+        tree->right = NULL;
         return;
     }
     
