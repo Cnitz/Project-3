@@ -33,7 +33,7 @@ void dt_build(Table *tbl, Tree *tree){
     Table* left;
     Table* right;
    // tbl_print(tbl);
-    double prev = 900, entropy = 0, split_d = 0;
+    double prev = 0xFFFFFFFFFFFFFFFF, entropy = 0, split_d = 0;
     char* split_s;
     char type;
     
@@ -177,7 +177,7 @@ void dt_print(void *data){
     
 
     if(((Node*)data)->leaf == 1){
-        printf("C:%d", ((Node*)data)->class);
+        printf("C:%d\n", ((Node*)data)->class);
     }
     if(((Node*)data)->type == 'S'){
         printf("%s", colnames[((Node*)data)->column]);
