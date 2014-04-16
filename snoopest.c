@@ -20,16 +20,16 @@ int comp();
 int row_checker();
 void print_tbl();
 char** first_row();
-char** columns;
+char** colnames;
 
 
 int main(int argc, char *argv[]){
     
     ca_init(argc, argv);
     file = ca_str_value("file");
-    query = ca_str_value("query");
+   // query = ca_str_value("query");
     rd_open(file);
-    columns = first_row();
+    colnames = first_row();
     
     //printf("%s\n", query);
     //char c = rd_getchar();
@@ -39,9 +39,10 @@ int main(int argc, char *argv[]){
     Table* tbl = tbl_make();
     buffering(tbl);
     //tbl_print(tbl);
-   
-    
-    
+    Tree* t = t_make();
+    dt_build(tbl, t);
+    int space = 0;
+    t_print(t, space, dt_print);
     
     
     //char* p = "SSDSDS";

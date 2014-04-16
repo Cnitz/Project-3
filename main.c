@@ -55,8 +55,8 @@ int main(int argc, char* argv[]){
     char* x7 = "plug";
   
     Table* tbl = tbl_make();
-  
-    /*
+  /*
+    
     tbl_start_row(tbl, 5);
     tbl_add_string_to_row(tbl, p1);
     tbl_add_string_to_row(tbl, t1);
@@ -67,9 +67,10 @@ int main(int argc, char* argv[]){
     tbl_add_string_to_row(tbl, p1);
     tbl_add_string_to_row(tbl, t1);
     tbl_add_string_to_row(tbl, h1);
-    tbl_add_string_to_row(tbl, w1);
+    tbl_add_string_to_row(tbl, w2);
     tbl_add_double_to_row(tbl, 1.0);
     tbl_done_building(tbl);
+    
     */
      tbl_start_row(tbl, 3);
     tbl_add_string_to_row(tbl, x1);

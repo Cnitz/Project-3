@@ -17,6 +17,7 @@ Node* n_make();
 
 
 void dt_build(Table *tbl, Tree *tree){
+    if(tbl == NULL) return;
    // printf("\n");
     Node* n = n_make();
     int count = 0;
