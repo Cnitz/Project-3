@@ -11,6 +11,10 @@ void   rd_open(char* fn){
    fs = fopen(fn, "r");
 }
 
+void rd_close(){
+    fclose(fs);
+}
+
 /*
  * Returns the next character in the input file or EOF. Has undefined
  * behavior if the file is not open.

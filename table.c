@@ -387,3 +387,5 @@ char* tbl_type(Table* tbl){
     return p;
 }
 
+void tbl_free(Table* tbl){};
+

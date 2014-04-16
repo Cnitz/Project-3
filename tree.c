@@ -99,4 +99,5 @@ void* t_navigate( Tree* t , void* d,  int(*p)(void*, void*), void*(*f)(void*)){
     return NULL;
 }
 
+void t_free(Tree* t, void (*free_function)(void*)){};
 

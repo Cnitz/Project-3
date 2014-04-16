@@ -223,3 +223,5 @@ void ca_init(int argc, char **argv) {
 	for (int i = 1; i < argc; i++)
 		process_string(strlen(argv[i]), argv[i]);
 }
+
+void ca_free(){}

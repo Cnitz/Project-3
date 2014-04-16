@@ -17,6 +17,9 @@ void(*p)(void*) = dt_print;
 
 int main(int argc, char* argv[]){
     colnames = calloc(5, sizeof(char*));
+    
+    
+    
     char* c1 = "outlook";
     char* c2 = "temperature";
     char* c3 = "humidity";
@@ -127,15 +130,16 @@ int main(int argc, char* argv[]){
     
     dt_build(tbl, t);
     int space = 0;
-    t_print(t, space, p);
+   // t_print(t, space, p);
     
     
-    
-    /*  printf("%s\n", ((Node*)t->data)->field.s);
+  
+      printf("%s\n", ((Node*)t->data)->field.s);
       printf(" %s\n", ((Node*)t->left->data)->field.s);
       printf(" %s\n", ((Node*)t->right->data)->field.s);
       printf("  %s\n", ((Node*)t->right->right->data)->field.s);
-      printf("  %s\n", ((Node*)t->right->right->left->data)->field.s);*/
+      printf("   %s\n", ((Node*)t->right->right->left->data)->field.s);
+ 
 }
 
 

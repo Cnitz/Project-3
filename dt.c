@@ -7,7 +7,7 @@
 //
 #include "defs_itf.h"
 
-int find_conditionals();
+
 Column* get_column();
 Table* build_string_left_table();
 Table* build_string_right_table();
@@ -19,7 +19,7 @@ Node* n_make();
 void dt_build(Table *tbl, Tree *tree){
    // printf("\n");
     Node* n = n_make();
-   
+    int count = 0;
     int cols = tbl_column_count(tbl), index = 0;
     if(tbl_row_count(tbl) <= 1){
         n->leaf = 1;
@@ -33,7 +33,7 @@ void dt_build(Table *tbl, Tree *tree){
     Table* left;
     Table* right;
    // tbl_print(tbl);
-    double prev = 0, entropy = 0, split_d = 0;
+    double prev = 900, entropy = 0, split_d = 0;
     char* split_s;
     char type;
     
@@ -42,16 +42,23 @@ void dt_build(Table *tbl, Tree *tree){
     for(int i = 0; i < cols-1; i++){
         
         if(tbl_row_type_at(tbl_row_at(tbl, 0), i) == 'S'){
-            //if(has_single_value(get_column(tbl, i))) continue;
+            if(has_single_value(get_column(tbl, i))) {
+                count++;
+                continue;
+            }
             entropy = find_string_split_entropy(get_column(tbl, i));
+           // printf("%.2f\n", entropy);
         }
         
         if(tbl_row_type_at(tbl_row_at(tbl, 0), i) == 'D'){
-           // if(has_single_value(get_column(tbl, i))) continue;
+            if(has_single_value(get_column(tbl, i))) {
+                count++;
+                continue;
+            }
             entropy = find_double_split_entropy(get_column(tbl, i));
         }
         
-        if(i == 0){
+     /*   if(i == 0){
             prev = entropy;
             index = i;
                    
@@ -64,9 +71,9 @@ void dt_build(Table *tbl, Tree *tree){
                 split_s = find_string_split_value(get_column(tbl, index));
                 type = 'S';
                 
-             //  printf("%s\n\n", split_s);
+               printf("%s\n\n", split_s);
             }
-        }
+        } */
         
         if(entropy < prev){
             
@@ -86,6 +93,14 @@ void dt_build(Table *tbl, Tree *tree){
             }
         }
         
+    }
+   
+
+    if(count == tbl_column_count(tbl) -1){
+        n->leaf = 1;
+        n->class = (unsigned int)tbl_double_at(tbl_row_at(tbl, 0), cols-1);
+        tree->data = n;
+        return;
     }
     
     if(is_impossible_split(get_column(tbl, 0)) == 1){
@@ -147,7 +162,9 @@ void dt_build(Table *tbl, Tree *tree){
 
 
 
-void dt_free(void *data);
+void dt_free(void *data){
+    return;
+}
 
 
 
@@ -157,20 +174,21 @@ void dt_free(void *data);
 
 void dt_print(void *data){
     if(data == NULL) return;
-    Node* n = (Node*)data;
-    if(n->leaf == 1){
-        printf("C:%d", n->class);
+    
+
+    if(((Node*)data)->leaf == 1){
+        printf("C:%d", ((Node*)data)->class);
     }
-    if(n->type == 'S'){
-        printf("%s", colnames[n->column]);
+    if(((Node*)data)->type == 'S'){
+        printf("%s", colnames[((Node*)data)->column]);
         printf("=");
-        printf("%s\n", n->field.s);
+        printf("%s\n", ((Node*)data)->field.s);
         
     }
-    if(n->type == 'D'){
-        printf("%s", colnames[n->column]);
+    if(((Node*)data)->type == 'D'){
+        printf("%s", colnames[((Node*)data)->column]);
         printf("=");
-        printf("%.2f\n", n->field.d);
+        printf("%.2f\n", ((Node*)data)->field.d);
     }
 
 }
