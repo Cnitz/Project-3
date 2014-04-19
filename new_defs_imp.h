@@ -13,7 +13,8 @@
 
 
 
-union Data{char* c; double d};
+union data{char* c; double d;};
+typedef union data Data;
 
 
 struct rows{

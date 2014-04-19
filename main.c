@@ -104,7 +104,7 @@ int main(int argc, char* argv[]){
     
     
     //*******0.txt*********
-   /* tbl_start_row(tbl, 5);
+ /*   tbl_start_row(tbl, 5);
     tbl_add_string_to_row(tbl, p1);
     tbl_add_string_to_row(tbl, t1);
     tbl_add_string_to_row(tbl, h1);
@@ -179,14 +179,14 @@ int main(int argc, char* argv[]){
 
 
 
-    
+   // tbl_print(tbl);
 
 
     Tree* t = t_make();
-    
-    dt_build(tbl, t);
+    tbl_free(tbl);
+   // dt_build(tbl, t);
     int space = 0;
-    t_print(t, space, dt_print);
+   // t_print(t, space, dt_print);
     
     
   

@@ -38,11 +38,11 @@ int main(int argc, char *argv[]){
 
     Table* tbl = tbl_make();
     buffering(tbl);
-    //tbl_print(tbl);
+    tbl_print(tbl);
     Tree* t = t_make();
-    dt_build(tbl, t);
+   // dt_build(tbl, t);
     int space = 0;
-    t_print(t, space, dt_print);
+   // t_print(t, space, dt_print);
    // printf("%s\n",rd_parse_string("hello/hello",0, 12));
     
     
