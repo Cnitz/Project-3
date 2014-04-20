@@ -143,6 +143,8 @@ void dt_build(Table *tbl, Tree *tree){
 
         dt_build(left, tree->left);
         dt_build(right, tree->right);
+        tbl_free(left);
+        tbl_free(right);
         
         return;
     }
@@ -164,6 +166,8 @@ void dt_build(Table *tbl, Tree *tree){
         tree->right = t_make();
         dt_build(left, tree->left);
         dt_build(right, tree->right);
+        tbl_free(left);
+        tbl_free(right);
         return;
     }
     
