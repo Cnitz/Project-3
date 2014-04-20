@@ -21,6 +21,7 @@ char* type_maker();
 Row* tbl_row_at();
 void tbl_free_row();
 void tbl_print_row();
+void tester();
 
 int tablebuilt = 0, tableset = 0, count = 0, tmcount = 0;
 
@@ -50,6 +51,7 @@ Table * tbl_make(){
 void    tbl_start_row(Table* tbl, int num_fields){
     if(tbl->tablebuilt == 1 || tbl == NULL) return;
     tbl->rowcount++;
+   
     
     Row* r = calloc(1, sizeof(Row));
     r->fields = num_fields;
@@ -63,6 +65,7 @@ void    tbl_start_row(Table* tbl, int num_fields){
     if(curr == NULL){
         tbl->head = r;
     }
+   
     
     while(curr != NULL){
         if(curr->next == NULL){
@@ -141,9 +144,10 @@ Table  *tbl_done_building(Table* tbl){
     
    
     
-    if(tbl->rowcount == 1){
+    if(tbl->rowcount < 2){
         tbl->rows = calloc(tbl->rowcount, sizeof(Row*));
         tbl->rows[0] = curr;
+        tbl->masterkey = calloc(strlen(curr->type)+1, sizeof(char));
         strcpy(tbl->masterkey, curr->type);
         tbl->cols = strlen(tbl->masterkey);
         return tbl;
@@ -327,7 +331,7 @@ void    tbl_print(Table* tbl){
  * Undefined behavior if called before tbl_done_building()
  */
 char    tbl_row_type_at( Row * row , int column ){
-    if(tablebuilt == 0) return -1;
+    //if(tablebuilt == 0) return -1;
     return row->type[column];
 }
 
@@ -412,6 +416,10 @@ void tbl_free(Table* tbl){
         free(tbl->masterkey);
     free(tbl);
     
+}
+
+void tester(Row* r){
+    printf("%c", r->type[0]);
 }
                        
                        

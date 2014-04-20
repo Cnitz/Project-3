@@ -14,6 +14,9 @@ Table* build_double_left_table();
 Table* build_double_right_table();
 char** colnames;
 void(*p)(void*) = dt_print;
+Column* get_column();
+void print_str();
+void tester();
 
 int main(int argc, char* argv[]){
     colnames = calloc(5, sizeof(char*));
@@ -71,7 +74,7 @@ int main(int argc, char* argv[]){
     tbl_add_double_to_row(tbl, 1.0);
     tbl_done_building(tbl);
     
-    */
+    *//*
      tbl_start_row(tbl, 3);
     tbl_add_string_to_row(tbl, x1);
     tbl_add_double_to_row(tbl, 15);
@@ -101,10 +104,10 @@ int main(int argc, char* argv[]){
     tbl_add_double_to_row(tbl, 15);
     tbl_add_double_to_row(tbl, 1);
     tbl_done_building(tbl);
-    
+    */
     
     //*******0.txt*********
- /*   tbl_start_row(tbl, 5);
+    tbl_start_row(tbl, 5);
     tbl_add_string_to_row(tbl, p1);
     tbl_add_string_to_row(tbl, t1);
     tbl_add_string_to_row(tbl, h1);
@@ -171,11 +174,11 @@ int main(int argc, char* argv[]){
     tbl_add_string_to_row(tbl, w2);
     tbl_add_double_to_row(tbl, 0.0);
     tbl_done_building(tbl);
-    //tbl_print(tbl);*/
-    //char* split = "mild";
+    //tbl_print(tbl);
+    char* split = "mild";
     
    // Table* ret = build_string_left_table(tbl, split, 1);
-   // tbl_print(ret);
+   // tbl_print(tbl);
 
 
 
@@ -183,10 +186,14 @@ int main(int argc, char* argv[]){
 
 
     Tree* t = t_make();
-    tbl_free(tbl);
-   // dt_build(tbl, t);
+    //tester(tbl_row_at(tbl, 0));
+    //Column* c = get_column(tbl, 0);
+    //print_str(c, 0);
+    
+    //tbl_free(tbl);
+    dt_build(tbl, t);
     int space = 0;
-   // t_print(t, space, dt_print);
+    t_print(t, space, dt_print);
     
     
   

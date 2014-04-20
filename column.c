@@ -23,6 +23,7 @@ int count_classes_left_double();
 int count_classes_right_double();
 int count_classes_left_str();
 int count_classes_right_str();
+void print_str();
 
 //Represents a column. To be defined by the student.
 
@@ -462,5 +463,11 @@ int count_classes_right_str(Column* c, int n, char* value){
     }
     
     return count;
+}
+//for testing purposes.
+void print_str(Column* c, int i){
+    printf("%s\n", c->fields.f[i]);
+    printf("working\n");
+    
 }
 
