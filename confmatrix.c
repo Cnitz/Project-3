@@ -8,6 +8,9 @@
 /*
  * Represents the confusion matrix. To be defined by the student.
  */
+int find_expected();
+int find_actual();
+
 
 struct confmatrix {
     int classes;
@@ -25,7 +28,7 @@ struct confmatrix {
  */
 ConfMatrix* cm_make(int classes){
     ConfMatrix* cm = calloc(1, sizeof(ConfMatrix));
-    cm->classes = 0;
+    cm->classes = classes;
     cm->total = 0;
     cm->errors = 0;
     cm->table = calloc(classes, sizeof(int));
@@ -46,11 +49,13 @@ ConfMatrix* cm_make(int classes){
 void cm_validate(ConfMatrix *cm, Table *tbl, Tree *tree){
     int expected = 0;
     int actual = 0;
-    if(((Node*)tree->data)->type == 'S'){
-        strcmp(((Node*)tree->data)->field.s, tbl_string_at(tbl_row_at(tbl, ((Node*)tree->data)->column)));
-    }
-    if(((Node*)tree->data)->type == 'D'){
-        
+
+    for(int i = 0; i < tbl_row_count(tbl); i++){
+        expected = find_expected(tbl_row_at(tbl, i), tree);
+        actual = find_actual(tbl_row_at(tbl, i), tbl_column_count(tbl)-1);
+        if(actual != expected) cm->errors++;
+        cm->table[actual][expected]++;
+        cm->total++;
     }
 
     
@@ -71,6 +76,30 @@ void cm_validate(ConfMatrix *cm, Table *tbl, Tree *tree){
  *   new line after the last row of text printed.
  */
 void cm_print(ConfMatrix* cm){
+    printf("Confusion matrix: total=%d, errors=%d \n", cm->total, cm->errors);
+    printf(" |");
+    for(int i = 0; i < cm->classes; i++){
+        printf(" %d", i);
+    }
+    
+    printf("\n");
+    
+    for(int i = 0; i < cm->classes; i++){
+        printf("%d|",i);
+        for(int k = 0; k < cm->classes; k++){
+            printf("%d,", cm->table[i][k]);
+        }
+        printf("\n");
+    }
+    
+    
+}
+
+/*
+ * cm_free():
+ *   You know the drill!
+ */
+void cm_free(ConfMatrix* cm){
     if(cm == NULL) return;
     int classes = cm->classes;
     for(int i = 0; i < classes; i++){
@@ -79,12 +108,6 @@ void cm_print(ConfMatrix* cm){
     free(cm->table);
     free(cm);
 }
-
-/*
- * cm_free():
- *   You know the drill!
- */
-void cm_free(ConfMatrix* cm);
 
 /*
  * tbl_classes_count:
@@ -117,3 +140,30 @@ int tbl_classes_count(Table *tbl){
     return count;
     
 }
+
+int find_expected(Row* row, Tree* t){
+    
+    Node* n = t_data(t);
+    if(n->leaf == 1){
+        return n->class;
+        
+    }
+    if(n->type == 'S'){
+        if(strcmp(n->field.s, tbl_string_at(row, n->column)) == 0)
+            return find_expected(row, t_left(t));
+        else
+            return find_expected(row, t_right(t));
+    }
+    if(n->type == 'D'){
+        if(tbl_double_at(row, n->column) < n->field.d)
+            return find_expected(row, t_left(t));
+        else
+            return find_expected(row, t_right(t));
+    }
+    return -1;
+}
+
+int find_actual(Row* row, int last_column){
+    return (int)tbl_double_at(row, last_column);
+}
+

@@ -17,15 +17,17 @@ void(*p)(void*) = dt_print;
 Column* get_column();
 void print_str();
 void tester();
+int find_expected();
+
 
 int main(int argc, char* argv[]){
     colnames = calloc(5, sizeof(char*));
     
     
     
-    char* c1 = "string";
-    char* c2 = "double";
-    char* c3 = "class";
+    char* c1 = "outlook";
+    char* c2 = "temperature";
+    char* c3 = "humidity";
     char* c4 = "wind";
     char* c5 = "play";
     colnames[0] = c1;
@@ -44,6 +46,7 @@ int main(int argc, char* argv[]){
     
     char* h1 = "normal";
     char* h2 = "high";
+    char* h3 = "low";
     
     char* w1 = "true";
     char* w2 = "false";
@@ -175,10 +178,36 @@ int main(int argc, char* argv[]){
     tbl_add_double_to_row(tbl, 0.0);
     tbl_done_building(tbl);
     //tbl_print(tbl);
+    Table* ret = tbl_make();
+    tbl_start_row(ret, 5);
+    tbl_add_string_to_row(ret, p2);
+    tbl_add_string_to_row(ret, t1);
+    tbl_add_string_to_row(ret, h3);
+    tbl_add_string_to_row(ret, w1);
+    tbl_add_double_to_row(ret, 1.0);
+    tbl_start_row(ret, 5);
+    tbl_add_string_to_row(ret, p3);
+    tbl_add_string_to_row(ret, t3);
+    tbl_add_string_to_row(ret, h2);
+    tbl_add_string_to_row(ret, w2);
+    tbl_add_double_to_row(ret, 0.0);
+    tbl_start_row(ret, 5);
+    tbl_add_string_to_row(ret, p1);
+    tbl_add_string_to_row(ret, t1);
+    tbl_add_string_to_row(ret, h1);
+    tbl_add_string_to_row(ret, w2);
+    tbl_add_double_to_row(ret, 1.0);
+    tbl_start_row(ret, 5);
+    tbl_add_string_to_row(ret, p1);
+    tbl_add_string_to_row(ret, t1);
+    tbl_add_string_to_row(ret, h1);
+    tbl_add_string_to_row(ret, w1);
+    tbl_add_double_to_row(ret, 0.0);
+    tbl_done_building(ret);
     char* split = "mild";
     
    // Table* ret = build_string_left_table(tbl, split, 1);
-   // tbl_print(tbl);
+   // tbl_print(ret);
 
 
 
@@ -196,7 +225,11 @@ int main(int argc, char* argv[]){
     dt_build(tbl, t);
     int space = 0;
    // t_print(t, space, dt_print);
-    
+   // tbl_print_row(tbl_row_at(tbl, 0));
+   // printf("%d\n",find_expected(tbl_row_at(tbl, 0), t));
+    ConfMatrix* cm = cm_make(2);
+    cm_validate(cm, ret, t);
+    cm_print(cm);
     
   
    /*   printf("%s\n", ((Node*)t->data)->field.s);
