@@ -20,13 +20,14 @@ void dt_build(Table *tbl, Tree *tree){
     if(tbl == NULL) return;
    // printf("\n");
     Node* n = n_make();
+	Column* c;
     int count = 0;
     int cols = tbl_column_count(tbl), index = 0;
     
     if(tbl_row_count(tbl) <= 1){
         n->leaf = 1;
         n->class = (unsigned int)tbl_double_at(tbl_row_at(tbl, 0), cols-1);
-        tree->data = n;
+        t_set_data(tree, n);
         tree->left = NULL;
         tree->right = NULL;
         return;
@@ -44,11 +45,12 @@ void dt_build(Table *tbl, Tree *tree){
   //  printf("%d", cols);
     for(int i = 0; i < cols-1; i++){
         
-        Column* c = get_column(tbl, i);
+         c = get_column(tbl, i);
        // printf("%s\n", c->fields.f[i]);
         if(tbl_row_type_at(tbl_row_at(tbl, 0), i) == 'S'){
             if(has_single_value(c)) {
                 count++;
+		free_column(c);
                 continue;
             }
             
@@ -59,28 +61,13 @@ void dt_build(Table *tbl, Tree *tree){
         if(tbl_row_type_at(tbl_row_at(tbl, 0), i) == 'D'){
             if(has_single_value(c)) {
                 count++;
+		free_column(c);
                 continue;
             }
             
             entropy = find_double_split_entropy(c);
         }
         
-     /*   if(i == 0){
-            prev = entropy;
-            index = i;
-                   
-            if(tbl_row_type_at(tbl_row_at(tbl, 0), index) == 'D'){
-                       split_d = find_double_split_value(get_column(tbl, index));
-                       type = 'D';
-            }
-            
-            if(tbl_row_type_at(tbl_row_at(tbl, 0), index) == 'S'){
-                split_s = find_string_split_value(get_column(tbl, index));
-                type = 'S';
-                
-               printf("%s\n\n", split_s);
-            }
-        } */
         
         if(entropy < prev){
             
@@ -88,85 +75,100 @@ void dt_build(Table *tbl, Tree *tree){
             index = i;
             
             if(tbl_row_type_at(tbl_row_at(tbl, 0), index) == 'D'){
-                split_d = find_double_split_value(get_column(tbl, index));
+                //split_d = find_double_split_value(c);
                 type = 'D';
             }
             
             if(tbl_row_type_at(tbl_row_at(tbl, 0), index) == 'S'){
-                split_s = find_string_split_value(get_column(tbl, index));
+		
+		//split_s = find_string_split_value(c);
+               // strcpy(split_s, find_string_split_value(c));
                 type = 'S';
                 
               //  printf("%s\n", split_s);
             }
         }
         free_column(c);
+
     }
    
 
     if(count == tbl_column_count(tbl) -1){
         n->leaf = 1;
         n->class = (unsigned int)tbl_double_at(tbl_row_at(tbl, 0), cols-1);
-        tree->data = n;
+        t_set_data(tree, n);
         tree->left = NULL;
         tree->right = NULL;
         return;
     }
-    
-    if(is_impossible_split(get_column(tbl, 0)) == 1){
+    Column* first = get_column(tbl, 0);
+    if(is_impossible_split(first) == 1){
         n->leaf = 1;
         n->class = (unsigned int)tbl_double_at(tbl_row_at(tbl, 0), cols-1);
-        tree->data = n;
+        t_set_data(tree, n);
         tree->left = NULL;
         tree->right = NULL;
+	free_column(first);
         return;
     }
+	free_column(first);
    // printf("%s\n", split_s);
     
     if(type == 'S'){
-        
+        c = get_column(tbl, index);
         n->entropy = prev;
-        n->field.s = calloc(strlen(split_s)+1, sizeof(char));
-        strcpy(n->field.s, split_s);
+        n->field.s = calloc(strlen(find_string_split_value(c))+1, sizeof(char));
+	
+        strcpy(n->field.s, find_string_split_value(c));
+	
+	
         n->type = type;
         n->leaf = 0;
         n->column = index;
-        tree->data = n;
+        t_set_data(tree, n);
        
         //build two seperate tables
-        left = build_string_left_table(tbl, split_s, index);
-        right = build_string_right_table(tbl, split_s, index);
-        
+        left = build_string_left_table(tbl, find_string_split_value(c), index);
+        right = build_string_right_table(tbl, find_string_split_value(c), index);
+        free_column(c);
         
         //recursion
         tree->left = t_make();
         tree->right = t_make();
-
+	
         dt_build(left, tree->left);
         dt_build(right, tree->right);
+
+	if(left != NULL)
         tbl_free(left);
+	if(right != NULL)
         tbl_free(right);
         
         return;
     }
     
     if(type == 'D'){
+	c = get_column(tbl, index);
         n->entropy = prev;
-        n->field.d = split_d;
+        n->field.d = find_double_split_value(c);
         n->type = type;
         n->leaf = 0;
         n->column = index;
-        tree->data = n;
+        t_set_data(tree, n);
         
         //build two seperate tables
-        left = build_double_left_table(tbl, split_d, index);
-        right = build_double_right_table(tbl, split_d, index);
-       
+        left = build_double_left_table(tbl, find_double_split_value(c), index);
+        right = build_double_right_table(tbl, find_double_split_value(c), index);
+	free_column(c);       
+
         //recursion
         tree->left = t_make();
         tree->right = t_make();
         dt_build(left, tree->left);
         dt_build(right, tree->right);
+        if(left != NULL)
         tbl_free(left);
+	if(right != NULL)
         tbl_free(right);
         return;
     }
@@ -182,6 +184,11 @@ void dt_build(Table *tbl, Tree *tree){
 
 
 void dt_free(void *data){
+	if(data == NULL) return;
+	if(((Node*)data)->type == 'S'){
+		free(((Node*)data)->field.s);
+}
+free(((Node*)data));
     return;
 }
 
@@ -242,6 +249,7 @@ Column* get_column(Table* tbl, int index){
            // printf("%s\n", strings[i]);
         }
        column = make_string_column(strings, classes, rows);
+	free(strings);
         
     }
     
@@ -251,10 +259,11 @@ Column* get_column(Table* tbl, int index){
             doubles[i] = tbl_double_at(tbl_row_at(tbl, i), index);
         }
        column = make_double_column(doubles, classes, rows);
+	free(doubles);
     }
    
 
-    
+    free(classes);
     return column;
 }
 
@@ -266,6 +275,7 @@ Table* build_string_left_table(Table* tbl, char* split, int index){
             g++;
         }
     }
+if(g == 0) return NULL;
     
     int* loc = calloc(g, sizeof(int));
     
@@ -296,6 +306,7 @@ Table* build_string_left_table(Table* tbl, char* split, int index){
                 char* str = calloc(strlen(tbl_string_at(tbl_row_at(tbl, loc[i]), k))+1, sizeof(char));
                 strcpy(str, tbl_string_at(tbl_row_at(tbl, loc[i]), k));
                 tbl_add_string_to_row(ret, str);
+		free(str);
             }
         }
     }
@@ -316,6 +327,7 @@ Table* build_string_right_table(Table* tbl, char* split, int index){
             g++;
         }
     }
+if(g == 0) return NULL;
     int* loc = calloc(g, sizeof(int));
     
     for(int i = 0; i < tbl_row_count(tbl); i++){
@@ -345,6 +357,7 @@ Table* build_string_right_table(Table* tbl, char* split, int index){
                 char* str = calloc(strlen(tbl_string_at(tbl_row_at(tbl, loc[i]), k))+1, sizeof(char));
                 strcpy(str, tbl_string_at(tbl_row_at(tbl, loc[i]), k));
                 tbl_add_string_to_row(ret, str);
+		free(str);
             }
         }
     }
@@ -363,6 +376,7 @@ Table* build_double_left_table(Table* tbl, double split, int index){
             g++;
         }
     }
+if(g == 0) return NULL;
     int* loc = calloc(g, sizeof(int));
     
     for(int i = 0; i < tbl_row_count(tbl); i++){
@@ -389,9 +403,9 @@ Table* build_double_left_table(Table* tbl, double split, int index){
             }
             
             if(type[k] == 'S'){
-                char* str = calloc(strlen(tbl_string_at(tbl_row_at(tbl, loc[i]), k))+1, sizeof(char));
-                strcpy(str, tbl_string_at(tbl_row_at(tbl, loc[i]), k));
-                tbl_add_string_to_row(ret, str);
+                
+               // strcpy(str, tbl_string_at(tbl_row_at(tbl, loc[i]), k));
+                tbl_add_string_to_row(ret, tbl_string_at(tbl_row_at(tbl, loc[i]), k));
             }
         }
     }
@@ -410,6 +424,7 @@ Table* build_double_right_table(Table* tbl, double split, int index){
             g++;
         }
     }
+	if(g == 0) return NULL;
     int* loc = calloc(g, sizeof(int));
     
     for(int i = 0; i < tbl_row_count(tbl); i++){
@@ -436,9 +451,8 @@ Table* build_double_right_table(Table* tbl, double split, int index){
             }
             
             if(type[k] == 'S'){
-                char* str = calloc(strlen(tbl_string_at(tbl_row_at(tbl, loc[i]), k))+1, sizeof(char));
-                strcpy(str, tbl_string_at(tbl_row_at(tbl, loc[i]), k));
-                tbl_add_string_to_row(ret, str);
+               
+                tbl_add_string_to_row(ret, tbl_string_at(tbl_row_at(tbl, loc[i]), k));
             }
         }
     }

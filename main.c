@@ -191,9 +191,11 @@ int main(int argc, char* argv[]){
     //print_str(c, 0);
     
     //tbl_free(tbl);
+    
+  //  printf("%d\n",tbl_classes_count(tbl));
     dt_build(tbl, t);
     int space = 0;
-    t_print(t, space, dt_print);
+   // t_print(t, space, dt_print);
     
     
   

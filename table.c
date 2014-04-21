@@ -1,6 +1,6 @@
 //
 //  table.c
-//  
+//
 //
 //  Created by Christian Nitz on 2/17/14.
 //
@@ -19,6 +19,9 @@ char* tbl_type();
 void tbl_print();
 char* type_maker();
 Row* tbl_row_at();
+void tbl_free_row();
+void tbl_print_row();
+void tester();
 
 int tablebuilt = 0, tableset = 0, count = 0, tmcount = 0;
 
@@ -30,12 +33,13 @@ int tablebuilt = 0, tableset = 0, count = 0, tmcount = 0;
  * members set to NULL/zero
  */
 Table * tbl_make(){
-    Table * ctb = (Table *)calloc(1, sizeof(Table));
+    Table * ctb = calloc(1, sizeof(Table));
     ctb->head = NULL;
     ctb->tail = NULL;
     ctb->rows = NULL;
     ctb->rowcount = 0;
     ctb->tablebuilt = 0;
+    ctb->cols = 0;
     return ctb;
 }
 
@@ -44,28 +48,37 @@ Table * tbl_make(){
  * This will add the row to the tail of the list.
  * Undefined behavior if tbl_done_building() has already been called.
  */
-    void    tbl_start_row(Table* tbl, int num_fields){
-        if(tbl->tablebuilt == 1 || tbl == NULL) return;
-        tbl->rowcount++;
-
-        Row* r = (Row*)calloc(1, sizeof(Row));
-        r->fields = num_fields;
-        Row* curr = tbl->head;
-        
-        if(curr == NULL){
-            tbl->head = r;
-        }
-        while(curr != NULL){
-            if(curr->next == NULL){
+void    tbl_start_row(Table* tbl, int num_fields){
+    if(tbl->tablebuilt == 1 || tbl == NULL) return;
+    tbl->rowcount++;
+   
+    
+    Row* r = calloc(1, sizeof(Row));
+    r->fields = num_fields;
+    r->type = calloc(num_fields+1, sizeof(char));
+    r->pos = 0;
+    r->data = calloc(num_fields, sizeof(Data));
+    r->next = NULL;
+    
+    Row* curr = tbl->head;
+    
+    if(curr == NULL){
+        tbl->head = r;
+    }
+   
+    
+    while(curr != NULL){
+        if(curr->next == NULL){
             curr->next = r;
-                break;
-            }
-            curr=curr->next;
-
+            break;
         }
-        tbl->tail = r;
+        curr=curr->next;
         
     }
+    tbl->tail = r;
+    tbl->tail->next = NULL;
+    
+}
 
 
 /*
@@ -74,18 +87,20 @@ Table * tbl_make(){
  * full.
  */
 void    tbl_add_string_to_row(Table* tbl, char * str) {
+    //check for valid information
     if(tbl->tablebuilt == 1) return;
-    if(tbl->tail->pos > tbl->tail->fields) return;
+    if(tbl->tail->pos >= tbl->tail->fields) return;
     
-    L k;
-    k.info.c = str;
-    k.val = 'S';
-    k.next = NULL;
-   
-    Row* curr = tbl->tail;
-    curr->ctb[curr->pos] = k;
-    curr->pos++;
-   
+    //make room for str
+    tbl->tail->data[tbl->tail->pos].c = calloc(strlen(str)+1, sizeof(char));
+    
+    //add type and str to row
+    strcat(tbl->tail->type, "S");
+    strcpy(tbl->tail->data[tbl->tail->pos].c, str);
+    
+    //increment pos
+    tbl->tail->pos++;
+    
 }
 
 /*
@@ -93,20 +108,19 @@ void    tbl_add_string_to_row(Table* tbl, char * str) {
  * tbl_done_building() has been called or if the row's fields are already full.
  */
 void    tbl_add_double_to_row(Table* tbl, double d) {
+    //check for valid information
     if(tbl->tablebuilt == 1) return;
-    if(tbl->tail->pos > tbl->tail->fields) return;
+    if(tbl->tail->pos >= tbl->tail->fields) return;
     
-    L k;
-    k.info.e = d;
-    k.val = 'D';
-    k.next = NULL;
-    
-    Row* curr = tbl->tail;
-    curr->ctb[curr->pos] = k;
-    curr->pos++;
+    //add type and str to row
+    strcat(tbl->tail->type, "D");
+    tbl->tail->data[tbl->tail->pos].d = d;
+  
+    //increment pos
+    tbl->tail->pos++;
     
     
-
+    
     
 }
 
@@ -117,109 +131,129 @@ void    tbl_add_double_to_row(Table* tbl, double d) {
  * A completed array for Table is finished
  */
 Table  *tbl_done_building(Table* tbl){
+    if(tbl == NULL || tbl->rowcount == 0) return NULL;
     tbl->tablebuilt = 1;
-    char* key;
+    int row_count = tbl->rowcount;
     //tbl_print(tbl);
-    Table* temp = (Table*)calloc(1, sizeof(Table));
-     Row* curr = tbl->head;
+    Row* curr = tbl->head;
+    Row* hold;
+    Row* head;
+    Row* tail;
+    char* now;
+    char* prev;
+    
+   
     
     if(tbl->rowcount < 2){
-        temp->head = tbl->head;
-        temp->masterkey = type_maker(curr);
-        
-       
-        temp->cols = strlen(type_maker(curr));
-        temp->rows = calloc(1, sizeof(Row*));
-        temp->rows[0] = curr;
-        tbl->rows = temp->rows;
-        tbl->head = temp->head;
-        tbl->masterkey = temp->masterkey;
-        tbl->cols = temp->cols;
+        tbl->rows = calloc(tbl->rowcount, sizeof(Row*));
+        tbl->rows[0] = curr;
+        tbl->masterkey = calloc(strlen(curr->type)+1, sizeof(char));
+        strcpy(tbl->masterkey, curr->type);
+        tbl->cols = strlen(tbl->masterkey);
         return tbl;
-    }
+        }
+    
     
     int rows = find_max_fields(tbl);
-    char* now = calloc(rows+1, sizeof(char));
-    char* prev = calloc(rows+1, sizeof(char));
-    char* master = calloc(rows+1, sizeof(char));
-    Row* prevs;
-   
     
-    now = type_maker(curr);
-   
+    Row* prevs;
+    
+
+    
+    now = curr->type;
+    
     
     while(curr != NULL){
         if(curr->next == NULL) break;
+        
         prev = now;
-         now = type_maker(curr->next);
+        now = curr->type;
+        
         if(strcmp(now, prev) == 0){
-            master = now;
-            
             tbl->masterkey = calloc(strlen(now)+1, sizeof(char));
-            strcpy(tbl->masterkey, master);
+            strcpy(tbl->masterkey, now);
             break;
         }
         curr=curr->next;
     }
     
-    if(master == NULL) return NULL;
+    tbl->rowcount = 0;
+    Table* temp = calloc(1, sizeof(*tbl));
+    
+    if(tbl->masterkey == NULL) return NULL;
     else{
         curr = tbl->head;
-       
-        while(curr != NULL){
-            now = type_maker(curr);
-            if(strcmp(master, now)==0){
-                
-                if(temp->rowcount == 0){
+        int k = 0;
+        //TODO: fix infinite loop
+        for(int i = 0; i< row_count; i++){
+            now = curr->type;
+            
+
+            if(strcmp(tbl->masterkey, now)==0){
+                if(tbl->rowcount == 0){
                     temp->head = curr;
-                    temp->rowcount++;
+                    tbl->rowcount++;
                 }
-                else if(temp->rowcount == 1){
+                else if(tbl->rowcount == 1){
                     temp->head->next = curr;
                     temp->tail = curr;
-                    temp->rowcount++;
+                    tbl->rowcount++;
+                    
                 }
                 else {
                     temp->tail->next = curr;
                     temp->tail = curr;
-                    temp->rowcount++;
+                    tbl->rowcount++;
                 }
-                    
+                
+                
+            }
+            else if(strcmp(tbl->masterkey, now) != 0){
+                if(curr->next == NULL)break;
+                hold = curr;
+                curr = curr->next;
+                tbl_free_row(hold);
+                continue;
                 
             }
             
-            if(curr->next == NULL)break;
+            // tbl_print_row(curr);
             
+            if(curr->next == NULL) break;
             
+           
             curr = curr->next;
+           
         }
         
     }
-    curr = temp->head;
+    
+    tbl->head = temp->head;
+    tbl->tail = temp->tail;
+    free(temp);
+    
+    curr = tbl->head;
     int i = 0;
-    temp->rows = calloc(temp->rowcount, sizeof(Row*));
+    tbl->rows = calloc(tbl->rowcount, sizeof(Row*));
+   
     while(curr != NULL){
-        temp->rows[i] = curr;
+        tbl->rows[i] = curr;
         i++;
         if(curr->next == NULL) break;
         curr = curr->next;
     }
-    tbl->head = temp->head;
-    tbl->tail = temp->tail;
-    tbl->rowcount = temp->rowcount;
-    tbl->rows = temp->rows;
+tbl->cols = strlen(tbl->masterkey);
     return tbl;
-        
+    
 }
 
 /*
  * Return the number of columns/fields in the Table.
  */
 int tbl_column_count( Table * tbl ){
-    if(tbl->tablebuilt == 0) {
-        return 0;
-    }
-    return strlen(tbl->masterkey);
+    if(tbl->tablebuilt == 0) return 0;
+    
+    return tbl->cols;
 }
 
 /*
@@ -229,7 +263,7 @@ int tbl_column_count( Table * tbl ){
  */
 Row *   tbl_row_at( Table * tbl, int at ){
     if(tbl->tablebuilt == 0) return NULL;
-
+    
     return tbl->rows[at];
     
 }
@@ -240,8 +274,8 @@ Row *   tbl_row_at( Table * tbl, int at ){
  */
 char *  tbl_string_at( Row * row, int at){
     if(row->fields <= at) return NULL;
-    if(row->ctb[at].val == 'S')
-    return row->ctb[at].info.c;
+    if(row->type[at] == 'S')
+        return row->data[at].c;
     return NULL;
 }
 
@@ -250,9 +284,9 @@ char *  tbl_string_at( Row * row, int at){
  * Undefined behavior if at is out of bounds or at-th field is not a double.
  */
 double  tbl_double_at( Row * row, int at){
-     if(row->fields <= at) return -1;
-    if(row->ctb[at].val == 'D')
-return row->ctb[at].info.e;
+    if(row->fields <= at) return -1;
+    if(row->type[at] == 'D')
+        return row->data[at].d;
     return -1;
 }
 
@@ -263,16 +297,16 @@ void    tbl_print_row( Row * row ){
     for(int i = 0; i < row->fields; i++){
         
         if(i == row->fields-1){
-            if(row->ctb[i].val == 'S')
-                printf("\"%s\"\n", row->ctb[i].info.c);
-            if(row->ctb[i].val == 'D')
-                printf("%.1f\n", row->ctb[i].info.e);
+            if(row->type[i] == 'S')
+                printf("\"%s\"\n", row->data[i].c);
+            if(row->type[i] == 'D')
+                printf("%.2f\n", row->data[i].d);
             break;
         }
-        if(row->ctb[i].val == 'S')
-            printf("\"%s\",", row->ctb[i].info.c);
-        if(row->ctb[i].val == 'D')
-            printf("%.1f,", row->ctb[i].info.e);
+        if(row->type[i] == 'S')
+            printf("\"%s\",", row->data[i].c);
+        if(row->type[i] == 'D')
+            printf("%.2f,", row->data[i].d);
     }
 }
 
@@ -298,14 +332,14 @@ void    tbl_print(Table* tbl){
  */
 char    tbl_row_type_at( Row * row , int column ){
     //if(tablebuilt == 0) return -1;
-    return row->ctb[column].val;
+    return row->type[column];
 }
 
 /*
  * Return the number of rows in the table
  */
 int     tbl_row_count( Table * tbl ){
-    counter();
+    if(tbl == NULL) return -1;
     return tbl->rowcount;
 }
 
@@ -336,33 +370,15 @@ Row ** tbl_rows(Table *tbl){
 
 
 
-
-
-char* type_maker(Row* r){
-    //if(tmcount == 0){
-    p = calloc(r->fields+1, sizeof(char));
-    t = calloc(1, sizeof(char));
-    //}
-    
-    
-    
-    
-    for(int i = 0; i < r->fields; i++){
-        *t = r->ctb[i].val;
-        strcat(p, t);
-    }
-    
-    tmcount++;
-    return p;
-}
-
+                       
+                       
 int find_max_fields(Table* tbl){
     if(tbl == NULL) return -1;
     int max = 0;
     Row* curr = tbl->head;
     while(curr != NULL){
         if(curr->fields > max)
-        max = curr->fields;
+            max = curr->fields;
         if(curr->next == NULL) break;
         curr = curr->next;
     }
@@ -371,21 +387,41 @@ int find_max_fields(Table* tbl){
 
 char* tbl_type(Table* tbl){
     if(tbl->tablebuilt == 0) return NULL;
-    char* p = calloc(tbl_column_count(tbl)+1, sizeof(char));
-    char* t = malloc(2*sizeof(char));
     
-    t[1] = '\0';
-    
-    for(int i = 0; i < tbl_column_count(tbl); i++){
-        
-        t[0] = tbl_row_type_at(tbl_row_at(tbl, 0), i);
-        strcat(p, t);
-    }
-    
-    free(t);
-    
-    return p;
+    return tbl->masterkey;
 }
 
-void tbl_free(Table* tbl){};
+
+void tbl_free_row(Row* r){
+    if(r == NULL) return;
+    for(int i = 0; i < r->fields; i++){
+        if(r->type[i] == 'S')
+            if(r->data[i].c != NULL)
+                free(r->data[i].c);
+    }
+    if(r->data != NULL)
+        free(r->data);
+    free(r->type);
+    free(r);
+}
+                       
+void tbl_free(Table* tbl){
+    if(tbl == NULL) return;
+    for(int i = 0; i < tbl->rowcount; i++){
+        tbl_free_row(tbl->rows[i]);
+    }
+    if(tbl->rows != NULL)
+    free(tbl->rows);
+    if(tbl->masterkey != NULL)
+        free(tbl->masterkey);
+    free(tbl);
+    
+}
+
+void tester(Row* r){
+    printf("%c", r->type[0]);
+}
+                       
+                       
+                       
 

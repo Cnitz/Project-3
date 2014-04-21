@@ -1,7 +1,15 @@
-double=22.50
- double=13.50
-  string=rat
-   C:1
-   C:0
-  C:1
- C:0
+fruit,veggie,class
+apple,corn,0
+banana,lettuce,1
+banana,corn,1
+orange,lettuce,0
+bacon,toast,1
+orange,broccoli,0
+pear,turnips,0
+steak,ribs,1
+steak,broccoli,1
+apple,lettuce,0
+peach,turnip,1
+pineapple,radish,1
+mango,carrot,0
+peach,carrot,0

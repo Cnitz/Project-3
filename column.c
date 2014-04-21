@@ -55,11 +55,14 @@ Column *make_double_column(double *fields, unsigned int *classes, unsigned int n
  * with the ith field corresponding to the ith class.
  */
 Column *make_string_column(char **fields, unsigned int *classes, unsigned int n){
-    Column* c = calloc(1, sizeof(Column));
+    Column* c = malloc(sizeof(Column));
     c->fields.f = calloc(n, sizeof(char*));
-    memcpy(c->fields.d, fields, sizeof(char*)*n);
     c->class = calloc(n, sizeof(unsigned int));
-    memcpy(c->class, classes, sizeof(unsigned int)*n);
+	for(int i = 0; i < n; i++){
+	c->fields.f[i] = calloc(strlen(fields[i])+1, sizeof(char));
+	strcpy(c->fields.f[i], fields[i]);
+	c->class[i] = classes[i];
+	}
     c->n = n;
     c->type = 'S';
     return c;
@@ -71,8 +74,13 @@ void free_column(Column *column){
     if(column == NULL) return;
     if(column->type == 'D')
         free(column->fields.d);
-    else
-        free(column->fields.f);
+    else{
+	for(int i = 0; i < column->n; i++){
+        free(column->fields.f[i]);
+		}
+	free(column->fields.f);
+	}
+
     free(column->class);
     free(column);
 }

@@ -39,7 +39,7 @@ void* t_data(Tree* t){
 
 /* make the node of the tree and allocate space for it*/
 Tree* t_make(){
-    Tree* t = (Tree *)calloc(1, sizeof(Tree));
+    Tree* t = calloc(1, sizeof(Tree));
     return t;
 }
 
@@ -99,5 +99,17 @@ void* t_navigate( Tree* t , void* d,  int(*p)(void*, void*), void*(*f)(void*)){
     return NULL;
 }
 
-void t_free(Tree* t, void (*free_function)(void*)){};
+void t_free(Tree* t, void (*free_function)(void*)){
+	if(t == NULL) return;
+	if(t->data != NULL){
+		free_function(t->data);
+	}
+	if(t->left != NULL)
+		t_free(t->left, free_function);
+	if(t->right != NULL)
+		t_free(t->right, free_function);
+	free(t);
+	return;
+
+}
 
